@@ -1,0 +1,8 @@
+streamlit
+reportlab
+streamlit-drawable-canvas
+Pillow
+PyPDF2
+numpy
+scipy
+
