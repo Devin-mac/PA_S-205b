@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 from datetime import date
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, landscape
@@ -93,6 +94,41 @@ def dividir_texto(texto, max_length=80):
         lineas.append(linea_actual.strip())
     
     return lineas
+
+
+#FUNCION PARA ENVIAR NOTIFICACIONES A TELEGRAM
+def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
+    try:
+        token = st.secrets["TELEGRAM_TOKEN"]
+        chat_id = st.secrets["TELEGRAM_CHAT_ID"]
+        
+        # 1. Preparar el texto de los meses para la oración
+        texto_meses = "SERVICIO CONTINUO" if es_continuo else " Y ".join(meses_lista).upper()
+        
+        # 2. Generar los hashtags (uno por cada mes seleccionado)
+        if es_continuo:
+            hashtags = "#PA_CONTINUO"
+        else:
+            hashtags = " ".join([f"#PA_{mes.upper()}" for mes in meses_lista])
+        
+        # 3. Construir el mensaje final
+        cuerpo_mensaje = (
+            "🎉 *¡Tenemos nuevos Precursores Auxiliares!* 🎉\n\n"
+            f"👤 *{nombre}* 🗓️ *{texto_meses}*\n\n"
+            f"{hashtags}"
+        )
+        
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        requests.post(url, data={
+            "chat_id": chat_id, 
+            "text": cuerpo_mensaje, 
+            "parse_mode": "Markdown"
+        })
+    except Exception as e:
+        st.warning(f"Nota: El PDF se generó, pero la notificación al canal no pudo enviarse.")
+
+
+
 
 # --- Funciones auxiliares para firmas ---
 def procesar_firma(firma_data):
@@ -494,6 +530,14 @@ if enviado:
             Para <b>compartir</b> el archivo, abre el PDF desde tu dispositivo y usa el botón de <i>Compartir</i>.
             </div>
             """, unsafe_allow_html=True)
+
+            #envio de info a telegram
+            enviar_notificacion_telegram(
+                nombre_solicitante, 
+                meses_seleccionados, 
+                continuo
+            )
+            # ------------------------------------------
             
             # Botón de descarga
             st.download_button(
