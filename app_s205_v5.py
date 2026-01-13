@@ -99,30 +99,44 @@ def dividir_texto(texto, max_length=80):
 #FUNCION PARA ENVIAR NOTIFICACIONES A TELEGRAM
 def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
     try:
-        token = st.secrets["TELEGRAM_TOKEN"]
-        chat_id = st.secrets["TELEGRAM_CHAT_ID"]
+        # 1. Extraer credenciales de forma segura
+        token = str(st.secrets["TELEGRAM_TOKEN"]).strip()
+        chat_id = str(st.secrets["TELEGRAM_CHAT_ID"]).strip()
         
-        # 1. Preparar el texto de los meses para la oración
+        # 2. Preparar el texto de meses y hashtags
         texto_meses = "SERVICIO CONTINUO" if es_continuo else " Y ".join(meses_lista).upper()
         
-        # 2. Generar los hashtags (uno por cada mes seleccionado)
         if es_continuo:
             hashtags = "#PA_CONTINUO"
         else:
             hashtags = " ".join([f"#PA_{mes.upper()}" for mes in meses_lista])
         
-        # 3. Construir el mensaje final
+        # 3. Construir mensaje en HTML (Más robusto que Markdown)
         cuerpo_mensaje = (
-            "🎉 *¡Tenemos nuevos Precursores Auxiliares!* 🎉\n\n"
-            f"👤 *{nombre}* 🗓️ *{texto_meses}*\n\n"
+            "🎉 <b>¡Tenemos nuevos Precursores Auxiliares!</b> 🎉\n\n"
+            f"👤 <b>{nombre}</b>\n"
+            f"🗓️ <b>{texto_meses}</b>\n\n"
             f"{hashtags}"
         )
         
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        # Por esto (es más robusto):
-        requests.post(url, json=payload, timeout=10)
+        
+        # 4. Enviar vía JSON
+        payload = {
+            "chat_id": chat_id,
+            "text": cuerpo_mensaje,
+            "parse_mode": "HTML"
+        }
+        
+        response = requests.post(url, json=payload, timeout=10)
+        
+        # Si algo sale mal, esto se verá en los Logs de Streamlit
+        if response.status_code != 200:
+            print(f"Error de Telegram: {response.text}")
+            
     except Exception as e:
-        st.warning(f"Nota: El PDF se generó, pero la notificación al canal no pudo enviarse.")
+        # Esto te mostrará el error real en pantalla si algo falla
+        st.error(f"Error en notificación: {e}")
 
 
 
