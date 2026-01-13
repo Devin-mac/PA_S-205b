@@ -130,9 +130,15 @@ def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
         
         response = requests.post(url, json=payload, timeout=10)
         
-        # Si algo sale mal, esto se verá en los Logs de Streamlit
-        if response.status_code != 200:
-            print(f"Error de Telegram: {response.text}")
+        # --- NUEVA LÓGICA DE AVISO ---
+        if response.status_code == 200:
+            # Opción A: Un globito que aparece y desaparece solo (muy elegante)
+            #st.toast("✅ Notificación enviada al Canal de Telegram", icon="🔔")
+            
+            # Opción B: Si prefieres un mensaje verde fijo abajo del botón, usa:
+             st.success("✅ Notificación enviada exitosamente 🔔.")
+        else:
+            st.error(f"Error de Telegram ({response.status_code}): {response.text}")
             
     except Exception as e:
         # Esto te mostrará el error real en pantalla si algo falla
