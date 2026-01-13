@@ -560,7 +560,9 @@ if enviado:
             enviar_notificacion_telegram(
                 nombre_solicitante, 
                 meses_seleccionados, 
-                continuo
+                continuo,
+                pdf_buffer,
+                nombre_archivo
             )
             # ------------------------------------------
             
