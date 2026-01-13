@@ -173,11 +173,14 @@ def procesar_firma(firma_data):
 
 # --- Función para crear PDF desde cero ---
 def crear_pdf_s205b(meses_seleccionados, continuo, fecha_solicitud, nombre_solicitante, 
-                    iniciales_1, iniciales_2, iniciales_3, firma_data):
+                    iniciales_1, iniciales_2, iniciales_3, firma_data,titulo_metadatos):
     """Crea el PDF S-205b completo desde cero"""
     buffer = BytesIO()
     can = canvas.Canvas(buffer, pagesize=landscape(letter))
-    
+    # --- AJUSTE DE METADATOS PARA MÓVILES ---
+    can.setTitle(titulo_metadatos) # <--- NUEVA INSTRUCCIÓN
+    # ----------------------------------------
+                        
     # Dimensiones de página
     width, height = landscape(letter)
     
@@ -506,19 +509,7 @@ if enviado:
         st.error("❌ Debes dibujar la firma del solicitante en el recuadro.")
     else:
         try:
-            # Crear PDF
-            pdf_buffer = crear_pdf_s205b(
-                meses_seleccionados,
-                continuo,
-                fecha_str,
-                nombre_solicitante,
-                iniciales_1,
-                iniciales_2,
-                iniciales_3,
-                firma_canvas.image_data
-            )
-            
-            # Construir nombre del archivo: MES-AÑO-NOMBRE_SOLICITANTE.pdf
+            # --- 1. MOVER EL CÁLCULO DEL NOMBRE HACIA ARRIBA --- # <--- AJUSTE
             if continuo:
                 mes_archivo = "CONTINUO"
             elif len(meses_seleccionados) == 1:
@@ -527,6 +518,19 @@ if enviado:
                 mes_archivo = f"{meses_seleccionados[0].upper()}-{meses_seleccionados[-1].upper()}"
             
             nombre_archivo = f"{mes_archivo}-{nombre_solicitante.replace(' ', '_').upper()}.pdf"
+
+            # --- 2. CREAR EL PDF PASANDO EL NOMBRE_ARCHIVO --- # <--- AJUSTE
+            pdf_buffer = crear_pdf_s205b(
+                meses_seleccionados,
+                continuo,
+                fecha_str,
+                nombre_solicitante,
+                iniciales_1,
+                iniciales_2,
+                iniciales_3,
+                firma_canvas.image_data,
+                nombre_archivo # <--- NUEVO: Se añade aquí como último dato
+            )
             
             # Mostrar resumen
             st.markdown('<div class="resumen-box">', unsafe_allow_html=True)
