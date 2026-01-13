@@ -204,7 +204,8 @@ def crear_pdf_s205b(meses_seleccionados, continuo, fecha_solicitud, nombre_solic
     
     # Mostrar meses seleccionados
     if meses_seleccionados:
-        meses_texto = ", ".join(meses_seleccionados)
+        # AJUSTE AQUÍ: Convertimos cada mes a mayúsculas antes de unirlos
+        meses_texto = ", ".join([m.upper() for m in meses_seleccionados]) # <---- AJUSTE
         can.setFont("Helvetica", 10)
         
         # Dibujar línea para los meses
@@ -280,11 +281,11 @@ def crear_pdf_s205b(meses_seleccionados, continuo, fecha_solicitud, nombre_solic
     
     # --- NOMBRE EN LETRA DE MOLDE (debajo de la firma, MISMO ANCHO) ---
     y_nombre = y - 58
-    can.setFont("Helvetica", 14)
+    can.setFont("Helvetica-Bold", 16)
     # Centrar el nombre dentro del ancho de la línea de firma
-    text_width = can.stringWidth(nombre_solicitante, "Helvetica", 10)
+    text_width = can.stringWidth(nombre_solicitante, "Helvetica-Bold", 16)
     x_nombre_centrado = x_right + (ancho_linea - text_width) / 2
-    can.drawString(x_nombre_centrado, y_nombre, nombre_solicitante)
+    can.drawString(x_nombre_centrado, y_nombre+3, nombre_solicitante)
     can.line(x_right, y_nombre - 2, x_right + ancho_linea, y_nombre - 2)
     
     # Texto entre paréntesis bajo el nombre
