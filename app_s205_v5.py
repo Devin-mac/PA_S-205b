@@ -145,7 +145,7 @@ def enviar_notificacion_telegram(nombre, meses_lista, es_continuo, pdf_file, nom
         
         # --- LÓGICA DE AVISO ACTUALIZADA ---
         if response_msg.status_code == 200 and response_doc.status_code == 200: # <---- AJUSTE (Verifica ambos envíos)
-            st.success("✅ Notificación y Formulario PDF enviados exitosamente 🔔.")
+            st.success("✅ Notificación y Formulario generado exitosamente ✅.")
         else:
             st.error(f"Error parcial - Msg: {response_msg.status_code}, Doc: {response_doc.status_code}")
             
