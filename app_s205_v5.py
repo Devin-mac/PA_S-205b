@@ -97,7 +97,8 @@ def dividir_texto(texto, max_length=80):
 
 
 #FUNCION PARA ENVIAR NOTIFICACIONES A TELEGRAM
-def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
+# FUNCION PARA ENVIAR NOTIFICACIONES Y EL PDF A TELEGRAM
+def enviar_notificacion_telegram(nombre, meses_lista, es_continuo, pdf_file, nombre_archivo): # <---- AJUSTE (Añadidos pdf_file y nombre_archivo)
     try:
         # 1. Extraer credenciales de forma segura
         token = str(st.secrets["TELEGRAM_TOKEN"]).strip()
@@ -111,7 +112,7 @@ def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
         else:
             hashtags = " ".join([f"#PA_{mes.upper()}" for mes in meses_lista])
         
-        # 3. Construir mensaje en HTML (Más robusto que Markdown)
+        # 3. Construir mensaje en HTML
         cuerpo_mensaje = (
             "🎉 <b>¡Tenemos nuevos Precursores Auxiliares!</b> 🎉\n\n"
             f"👤 <b>{nombre}</b>\n"
@@ -119,30 +120,37 @@ def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
             f"{hashtags}"
         )
         
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        
-        # 4. Enviar vía JSON
-        payload = {
+        # --- ENVÍO DEL MENSAJE DE TEXTO ---
+        url_msg = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload_msg = {
             "chat_id": chat_id,
             "text": cuerpo_mensaje,
             "parse_mode": "HTML"
         }
+        response_msg = requests.post(url_msg, json=payload_msg, timeout=10)
         
-        response = requests.post(url, json=payload, timeout=10)
+        # --- ENVÍO DEL ARCHIVO PDF (NUEVA SECCIÓN) --- # <---- NUEVO
+        url_doc = f"https://api.telegram.org/bot{token}/sendDocument"
         
-        # --- NUEVA LÓGICA DE AVISO ---
-        if response.status_code == 200:
-            # Opción A: Un globito que aparece y desaparece solo (muy elegante)
-            #st.toast("✅ Notificación enviada al Canal de Telegram", icon="🔔")
-            
-            # Opción B: Si prefieres un mensaje verde fijo abajo del botón, usa:
-             st.success("✅ Notificación enviada exitosamente 🔔.")
+        # Reiniciar el puntero del PDF para que Telegram lo lea desde el principio
+        pdf_file.seek(0) # <---- NUEVO
+        
+        # Preparamos el archivo para el envío
+        files = {
+            'document': (nombre_archivo, pdf_file, 'application/pdf')
+        } # <---- NUEVO
+        
+        # Enviamos el documento
+        response_doc = requests.post(url_doc, data={'chat_id': chat_id}, files=files, timeout=15) # <---- NUEVO
+        
+        # --- LÓGICA DE AVISO ACTUALIZADA ---
+        if response_msg.status_code == 200 and response_doc.status_code == 200: # <---- AJUSTE (Verifica ambos envíos)
+            st.success("✅ Notificación y Formulario PDF enviados exitosamente 🔔.")
         else:
-            st.error(f"Error de Telegram ({response.status_code}): {response.text}")
+            st.error(f"Error parcial - Msg: {response_msg.status_code}, Doc: {response_doc.status_code}")
             
     except Exception as e:
-        # Esto te mostrará el error real en pantalla si algo falla
-        st.error(f"Error en notificación: {e}")
+        st.error(f"Error en notificación completa: {e}")
 
 
 
