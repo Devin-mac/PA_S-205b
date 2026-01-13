@@ -119,11 +119,8 @@ def enviar_notificacion_telegram(nombre, meses_lista, es_continuo):
         )
         
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        requests.post(url, data={
-            "chat_id": chat_id, 
-            "text": cuerpo_mensaje, 
-            "parse_mode": "Markdown"
-        })
+        # Por esto (es más robusto):
+        requests.post(url, json=payload, timeout=10)
     except Exception as e:
         st.warning(f"Nota: El PDF se generó, pero la notificación al canal no pudo enviarse.")
 
