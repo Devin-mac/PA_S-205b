@@ -549,3 +549,5 @@ if enviado:
             
         except Exception as e:
             st.error(f"❌ Ocurrió un error al generar el PDF: {e}")
+
+st.write(f"Longitud del token: {len(st.secrets['TELEGRAM_TOKEN'])}")
